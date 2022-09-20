@@ -4,6 +4,7 @@ import ssl
 import json
 import pprint
 from core.pubsub import gcp_pubsub
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class SuiWs(object):
@@ -12,14 +13,16 @@ class SuiWs(object):
         self.pubsub = gcp_pubsub.GcpPubsub()
 
     async def get_datas(self, params):
-        async with websockets.connect(self.url, ping_interval=None) as websocket:
-            await websocket.send(params)
-            while True:
-                payload = await websocket.recv()
-                print("===================================")
-                payload = payload.replace("\\", "")
-                self.pubsub.push_payload(payload)
-
+        process = []
+        with ThreadPoolExecutor(max_workers=200) as executor:
+            async with websockets.connect(self.url, ping_interval=None) as websocket:
+                await websocket.send(params)
+                while True:
+                    payload = await websocket.recv()
+                    print("===================================")
+                    payload = payload.replace("\\", "")
+                    #self.pubsub.push_payload(payload)
+                    process.append(executor.submit(self.pubsub.push_payload, payload))
     def process(
         self,
         params,

@@ -9,24 +9,21 @@ class Ddl(object):
             db_name
         )
 
-    def create_stats_database(self, db_name):
+    def create_sui_dev_database(self, db_name):
         return """
-        CREATE DATABASE {}_stats
+        CREATE DATABASE IF NOT EXISTS sui_dev
         """.format(
             db_name
         )
 
-    def create_table_sources(self, tb_name, db_name):
+    def create_raw_table(self, tb_name, db_name):
         return """
         CREATE TABLE IF NOT EXISTS {}.{} (
-            source_id String,
-            source	Nullable(String),
-            medium	Nullable(String),
-            campaign	Nullable(String),
-            term	Nullable(String),
-            referrer	Nullable(String),
-            referrer_path Nullable(String),
-        ) ENGINE = MergeTree order by source_id;
+            raw_datas String
+        ) ENGINE = MergeTree order by raw_datas;
         """.format(
             db_name, tb_name
         )
+    
+    def insert_data_to_table(self, db_name, tb_name, columns):
+        return "INSERT INTO {}.{} {} VALUES ".format(db_name, tb_name, columns)

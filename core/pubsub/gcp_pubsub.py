@@ -31,8 +31,6 @@ class GcpPubsub(object):
     def push_payload(self, payload):
         publisher = pubsub_v1.PublisherClient()
         topic_path = publisher.topic_path(self.PUB_SUB_PROJECT, self.PUB_SUB_TOPIC)
-
-        print(payload.replace("\\", ""))
         data = json.dumps(payload).encode("utf-8")
         future = publisher.publish(topic_path, data=data)
         print("Pushed message to topic.")
@@ -43,7 +41,7 @@ class GcpPubsub(object):
         subscription_path = subscriber.subscription_path(
             self.PUB_SUB_PROJECT, self.PUB_SUB_SUBSCRIPTION
         )
-        
+
         print(f"Listening for messages on {subscription_path}..\n")
 
         streaming_pull_future = subscriber.subscribe(
@@ -54,6 +52,6 @@ class GcpPubsub(object):
             try:
                 # When `timeout` is not set, result() will block indefinitely,
                 # unless an exception is encountered first.
-                streaming_pull_future.result(timeout=period)
+                streaming_pull_future.result()
             except TimeoutError:
                 streaming_pull_future.cancel()
