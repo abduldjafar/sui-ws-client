@@ -11,8 +11,8 @@ def subscribe():
 
     clickhouse.init()
 
-    ch_services = ClickhouseServices(clickhouse)
-    #ch_services.create_sui_dev_database()
+    ch_services = ClickhouseServices()
+    ch_services.create_sui_dev_database()
     ch_services.create_sui_tale_raws()
     pubsub.consume_payload(ch_services.insert_into_table,10.0)
 
