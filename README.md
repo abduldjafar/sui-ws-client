@@ -8,6 +8,7 @@ Streaming transactions data throuught websocket to some destionation using pytho
 - [ ] kafka
 - [ ] cloud storage
 - [ ] bigquery (google cloud platform)
+- [x] clickhouse
 
 
 
