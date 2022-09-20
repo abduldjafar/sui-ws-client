@@ -21,4 +21,4 @@ Streaming transactions data throuught websocket to some destionation using pytho
     export PUB_SUB_SUBSCRIPTION=sui-dev-sub
     ```
 2. install dependencies with `pip install -r req.txt`
-3. `python main.py`
+3. run with `python main.py -ws sui.websocket.server -wp 9001`

@@ -43,7 +43,9 @@ class GcpPubsub(object):
         subscription_path = subscriber.subscription_path(
             self.PUB_SUB_PROJECT, self.PUB_SUB_SUBSCRIPTION
         )
+        
         print(f"Listening for messages on {subscription_path}..\n")
+
         streaming_pull_future = subscriber.subscribe(
             subscription_path, callback=callback
         )
