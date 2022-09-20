@@ -4,10 +4,12 @@
 Streaming transactions data throuught websocket to some destionation using python
 
 ## Destination
-[X] pubsub (google cloud platform)
-[ ] kafka
-[ ] cloud storage
-[ ] bigquery (google cloud platform)
+- [x] pubsub (google cloud platform)
+- [ ] kafka
+- [ ] cloud storage
+- [ ] bigquery (google cloud platform)
+
+
 
 ## How To run 
 1. setup environment variable
