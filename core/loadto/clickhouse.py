@@ -41,7 +41,7 @@ class ClickhouseServices(object):
         err_insert_datas, message_insert_datas =  ch_server.insert_data(insert_datas_query,datas)
         logging.info(message_insert_datas)
 
-        message.ack()
+        
 
         
          
