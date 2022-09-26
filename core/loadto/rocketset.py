@@ -41,5 +41,5 @@ class RocketsetServices(object):
         except exceptions.BadRequestException as e:
             logging.error(e)
             logging.info("waiting 10s for documents to be added...")
-            time.sleep(10)
+            time.sleep(30)
             self.add_data(messages)
