@@ -1,5 +1,6 @@
 from ast import arg
 from asyncio import events
+import logging
 from operator import index
 from core.websocket import websocket
 from core.loadto.clickhouse import ClickhouseServices
@@ -47,6 +48,9 @@ def batch_to_rocketset(
     def etl_process(start, end, fname):
         datas = jrpc_services.get_transactions_range(start, end)
         datas_result = jrpc_services.jrpc_post(datas["transactions_id"])
+
+        logging.info(datas_result)
+        
         datas_result = [
             {"_id": data["result"]["certificate"]["transactionDigest"], "params": data}
             for data in datas_result
