@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 example
 run.sh
+run_ingestion_to_rocketset.sh

@@ -2,4 +2,4 @@ export GOOGLE_APPLICATION_CREDENTIALS=/Users/abdulharisdjafar/Downloads/sui-data
 export PUB_SUB_TOPIC=sui-dev
 export PUB_SUB_PROJECT=sui-data-ingestion-devnet
 export PUB_SUB_SUBSCRIPTION=sui-dev-sub
-python main.py -ws 34.70.238.35  -wp 9001
+python main.py -ws 34.70.238.35  -wp 9001 
