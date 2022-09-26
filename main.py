@@ -50,27 +50,29 @@ def batch_to_rocketset(
         datas_result = jrpc_services.jrpc_post(datas["transactions_id"])
 
         logging.info(datas_result)
-        
-        datas_result = [
-            {"_id": data["result"]["certificate"]["transactionDigest"], "params": data}
-            for data in datas_result
-        ]
-        rocketsetServices.add_data(datas_result)
 
-        lck.acquire()
-        with open(fname, "r") as f:
-            last_index = f.read()
+        if datas_result[id] != None:
 
-        last_index = int(last_index)
+            datas_result = [
+                {"_id": data["result"]["certificate"]["transactionDigest"], "params": data}
+                for data in datas_result
+            ]
+            rocketsetServices.add_data(datas_result)
 
-        if last_index < end:
-            last_index = end
+            lck.acquire()
+            with open(fname, "r") as f:
+                last_index = f.read()
 
-        with open(fname, "a") as f:
-            f.seek(0)
-            f.truncate()
-            f.write(f"{last_index}")
-        lck.release()
+            last_index = int(last_index)
+
+            if last_index < end:
+                last_index = end
+
+            with open(fname, "a") as f:
+                f.seek(0)
+                f.truncate()
+                f.write(f"{last_index}")
+            lck.release()
 
     jrpc_services = JrpcServices(url)
     rocketsetServices = RocketsetServices()
