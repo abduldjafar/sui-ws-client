@@ -51,7 +51,7 @@ def batch_to_rocketset(
 
         logging.info(datas_result)
 
-        if datas_result[id] != None:
+        if datas_result["id"] != None:
 
             datas_result = [
                 {"_id": data["result"]["certificate"]["transactionDigest"], "params": data}
