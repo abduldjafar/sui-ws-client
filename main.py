@@ -50,7 +50,7 @@ def batch_to_rocketset(
         datas_result = jrpc_services.jrpc_post(datas["transactions_id"])
 
 
-        if datas_result["id"] != None:
+        if "id" in datas_result.keys() or datas_result["id"] != None:
 
             datas_result = [
                 {"_id": data["result"]["certificate"]["transactionDigest"], "params": data}
@@ -73,7 +73,7 @@ def batch_to_rocketset(
                 f.write(f"{last_index}")
             lck.release()
         else:
-            logging.info(datas["transactions_id"])
+            logging.info(datas_result)
 
 
     jrpc_services = JrpcServices(url)
