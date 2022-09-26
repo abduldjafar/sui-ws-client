@@ -50,7 +50,7 @@ def batch_to_rocketset(
         datas_result = jrpc_services.jrpc_post(datas["transactions_id"])
 
 
-        if "id" in datas_result.keys() or datas_result["id"] != None:
+        if "id" in datas_result.keys() and datas_result["id"] != None:
 
             datas_result = [
                 {"_id": data["result"]["certificate"]["transactionDigest"], "params": data}
