@@ -108,12 +108,12 @@ def batch_to_rocketset(
 
     if current_row_in_node > current_row_in_log:
         current_row = current_row + batch_size
-        batch_to_rocketset(url, current_row, filepath)
+        batch_to_rocketset(url, current_row, filepath,inc)
     else:
         time.sleep(10)
         current_row_in_log = get_row_in_log()
         current_row = current_row + batch_size
-        batch_to_rocketset(url,current_row, filepath)
+        batch_to_rocketset(url,current_row, filepath,inc)
 
 
 def publish(web_socket_server_host, web_socket_server_port):
@@ -172,6 +172,7 @@ if __name__ == "__main__":
             "http://{}:{}".format(web_socket_server_host, web_socket_server_port),
             batch_size,
             index_log,
+            incremental_get_from_node
         )
     else:
         print(
