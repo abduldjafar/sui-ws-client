@@ -102,19 +102,20 @@ def batch_to_rocketset(
         batch_size = int(batch_size)
        
         for start in range(index, current_row, inc):
-         """
-            processes.append(
+            etl_process(start,start + inc,filepath)
+        """
+        processes.append(
                 executor.submit(
                     etl_process,
                     start,
                     start + inc,
                     filepath,
                 )
-            )
+        )
         """
         
 
-        etl_process(start,start + inc,filepath)
+            
 
     for task in as_completed(processes):
         print(task.result())
