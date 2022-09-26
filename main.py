@@ -88,6 +88,10 @@ def batch_to_rocketset(
     else:
         index = 1
     with ThreadPoolExecutor(max_workers=200) as executor:
+        index = int(index)
+        current_row = int(current_row)
+        inc = int(inc)
+        batch_size = int(batch_size)
         for start in range(index, current_row, inc):
             processes.append(
                 executor.submit(
