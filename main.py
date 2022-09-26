@@ -91,17 +91,16 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
         batch_size = int(batch_size)
 
         for start in range(index, current_row, inc):
-            etl_process(start, start + inc, filepath)
-        """
-        processes.append(
-                executor.submit(
-                    etl_process,
-                    start,
-                    start + inc,
-                    filepath,
-                )
-        )
-        """
+            #etl_process(start, start + inc, filepath)
+            processes.append(
+                    executor.submit(
+                        etl_process,
+                        start,
+                        start + inc,
+                        filepath,
+                    )
+            )
+        
 
     for task in as_completed(processes):
         print(task.result())
