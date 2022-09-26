@@ -49,7 +49,6 @@ def batch_to_rocketset(
         datas = jrpc_services.get_transactions_range(start, end)
         datas_result = jrpc_services.jrpc_post(datas["transactions_id"])
 
-        logging.info(datas_result)
 
         if datas_result["id"] != None:
 
@@ -73,6 +72,9 @@ def batch_to_rocketset(
                 f.truncate()
                 f.write(f"{last_index}")
             lck.release()
+        else:
+            logging.info(datas["transactions_id"])
+
 
     jrpc_services = JrpcServices(url)
     rocketsetServices = RocketsetServices()
