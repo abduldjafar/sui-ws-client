@@ -32,12 +32,7 @@ def subscribe_to_rocketset():
     gcpPubsub.consume_payload(rocketsetServices.add_data, 3.0)
 
 
-def batch_to_rocketset(
-    url,
-    batch_size=1000,
-    filepath="output.log",
-    inc=1000
-):
+def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
     global lck
 
     def get_row_in_log():
@@ -49,32 +44,26 @@ def batch_to_rocketset(
         datas = jrpc_services.get_transactions_range(start, end)
         datas_result = jrpc_services.jrpc_post(datas["transactions_id"])
 
-        logging.info(datas_result)
+        datas_result = [
+            {"_id": data["result"]["certificate"]["transactionDigest"], "params": data}
+            for data in datas_result
+        ]
+        rocketsetServices.add_data(datas_result)
 
-        if "id" in datas_result.keys() and datas_result["id"] != None and type(datas_result) == dict:
+        lck.acquire()
+        with open(fname, "r") as f:
+            last_index = f.read()
 
-            datas_result = [
-                {"_id": data["result"]["certificate"]["transactionDigest"], "params": data}
-                for data in datas_result
-            ]
-            rocketsetServices.add_data(datas_result)
+        last_index = int(last_index)
 
-            lck.acquire()
-            with open(fname, "r") as f:
-                last_index = f.read()
+        if last_index < end:
+            last_index = end
 
-            last_index = int(last_index)
-
-            if last_index < end:
-                last_index = end
-
-            with open(fname, "a") as f:
-                f.seek(0)
-                f.truncate()
-                f.write(f"{last_index}")
-            lck.release()
-        else:
-            pass
+        with open(fname, "a") as f:
+            f.seek(0)
+            f.truncate()
+            f.write(f"{last_index}")
+        lck.release()
 
     jrpc_services = JrpcServices(url)
     rocketsetServices = RocketsetServices()
@@ -100,9 +89,9 @@ def batch_to_rocketset(
         current_row = int(current_row)
         inc = int(inc)
         batch_size = int(batch_size)
-       
+
         for start in range(index, current_row, inc):
-            etl_process(start,start + inc,filepath)
+            etl_process(start, start + inc, filepath)
         """
         processes.append(
                 executor.submit(
@@ -113,9 +102,6 @@ def batch_to_rocketset(
                 )
         )
         """
-        
-
-            
 
     for task in as_completed(processes):
         print(task.result())
@@ -125,12 +111,12 @@ def batch_to_rocketset(
 
     if current_row_in_node > current_row_in_log:
         current_row = current_row + batch_size
-        batch_to_rocketset(url, current_row, filepath,inc)
+        batch_to_rocketset(url, current_row, filepath, inc)
     else:
         time.sleep(10)
         current_row_in_log = get_row_in_log()
         current_row = current_row + batch_size
-        batch_to_rocketset(url,current_row, filepath,inc)
+        batch_to_rocketset(url, current_row, filepath, inc)
 
 
 def publish(web_socket_server_host, web_socket_server_port):
@@ -189,7 +175,7 @@ if __name__ == "__main__":
             "http://{}:{}".format(web_socket_server_host, web_socket_server_port),
             batch_size,
             index_log,
-            incremental_get_from_node
+            incremental_get_from_node,
         )
     else:
         print(
