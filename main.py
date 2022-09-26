@@ -35,6 +35,7 @@ def batch_to_rocketset(
     url,
     batch_size=1000,
     filepath="output.log",
+    inc=1000
 ):
     global lck
 
@@ -72,7 +73,6 @@ def batch_to_rocketset(
 
     # current_row = jrpc_services.get_total_transaction()
     current_row = batch_size
-    inc = 1000
     processes = []
 
     # create the shared lock
@@ -111,7 +111,9 @@ def batch_to_rocketset(
         batch_to_rocketset(url, current_row, filepath)
     else:
         time.sleep(10)
-        batch_to_rocketset(url, filepath)
+        current_row_in_log = get_row_in_log()
+        current_row = current_row + batch_size
+        batch_to_rocketset(url,current_row, filepath)
 
 
 def publish(web_socket_server_host, web_socket_server_port):
@@ -146,6 +148,13 @@ if __name__ == "__main__":
         default="output.log",
     )
 
+    parser.add_argument(
+        "-ic",
+        "--incremental-get-from-node",
+        help="batching from node maximum 3000",
+        default=1000,
+    )
+
     # Read arguments from command line
     args = parser.parse_args()
 
@@ -154,6 +163,7 @@ if __name__ == "__main__":
     event = args.event
     index_log = args.index_log
     batch_size = args.batch_size
+    incremental_get_from_node = args.incremental_get_from_node
 
     if event == "publish":
         publish(web_socket_server_host, web_socket_server_port)
