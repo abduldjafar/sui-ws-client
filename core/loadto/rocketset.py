@@ -39,7 +39,7 @@ class RocketsetServices(object):
             logging.info("Added documents to collection success")
 
         except exceptions.BadRequestException as e:
-            logging.error(e)
+            logging.error(e.body)
             logging.info("waiting 60s for documents to be added...")
             time.sleep(60)
             self.add_data(messages)
