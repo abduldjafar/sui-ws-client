@@ -95,7 +95,7 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
         inc = int(inc)
         batch_size = int(batch_size)
 
-        for start in range(index, index+batch_size, inc):
+        for start in range(index, index + batch_size, inc):
             etl_process(start, start + inc, filepath)
             """
             processes.append(
