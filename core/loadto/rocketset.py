@@ -42,6 +42,7 @@ class RocketsetServices(object):
         except exceptions.BadRequestException as e:
             logging.error(e.body)
             dict_log = json.loads(e.body)
+            
             if dict_log["message_key"] == "WRITE_RATE_LIMIT":
                 logging.info("waiting 60s for documents to be added...")
                 time.sleep(60)
