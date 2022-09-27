@@ -40,6 +40,15 @@ class RocketsetServices(object):
 
         except exceptions.BadRequestException as e:
             logging.error(e.body)
-            logging.info("waiting 60s for documents to be added...")
-            time.sleep(60)
-            self.add_data(messages)
+            if e.body["message_key"] == "WRITE_RATE_LIMIT":
+                logging.info("waiting 60s for documents to be added...")
+                time.sleep(60)
+                self.add_data(messages)
+            else:
+                for message in messages:
+                    logging.info(message)
+                    self.client.Documents.add_documents(
+                        collection=self.collection_name,
+                        data=[message],
+                        workspace=self.workspace,
+                    )
