@@ -56,10 +56,13 @@ class JrpcServices(object):
         self.transaction_by_range_payload["params"][1] = last
         post = self.jrpc_post(self.transaction_by_range_payload)
 
-        result["last_index"] = post["result"][-1][0]
-        result["transactions_id"] = [
-            setup_transaction_payload(data[1]) for data in post["result"]
-        ]
+        if len(post["result"]) > 0:
+            result["last_index"] = post["result"][-1][0]
+            result["transactions_id"] = [
+                setup_transaction_payload(data[1]) for data in post["result"]
+            ]
+        else:
+            result = { "transactions_id": []}
 
         return result
 

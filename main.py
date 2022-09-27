@@ -1,7 +1,4 @@
-from ast import arg
-from asyncio import events
 import logging
-from operator import index
 from core.websocket import websocket
 from core.loadto.clickhouse import ClickhouseServices
 from core.pubsub import gcp_pubsub
@@ -44,32 +41,40 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
         datas = jrpc_services.get_transactions_range(start, end)
         datas_result = jrpc_services.jrpc_post(datas["transactions_id"])
 
-        datas_result = [
-            {"_id": data["result"]["certificate"]["transactionDigest"], "params": data}
-            for data in datas_result
-        ]
-        rocketsetServices.add_data(datas_result)
+        if len(datas_result) > 0:
+            datas_result = [
+                {
+                    "_id": data["result"]["certificate"]["transactionDigest"]
+                    if type(data) == dict
+                    else "error",
+                    "params": data,
+                }
+                for data in datas_result
+            ]
 
-        lck.acquire()
-        with open(fname, "r") as f:
-            last_index = f.read()
+            if datas_result[0]["_id"] != "error":
+                rocketsetServices.add_data(datas_result)
 
-        last_index = int(last_index)
+                lck.acquire()
+                with open(fname, "r") as f:
+                    last_index = f.read()
 
-        if last_index < end:
-            last_index = end
+                last_index = int(last_index)
 
-        with open(fname, "a") as f:
-            f.seek(0)
-            f.truncate()
-            f.write(f"{last_index}")
-        lck.release()
+                if last_index < end:
+                    last_index = end
+
+                with open(fname, "a") as f:
+                    f.seek(0)
+                    f.truncate()
+                    f.write(f"{last_index}")
+                lck.release()
 
     jrpc_services = JrpcServices(url)
     rocketsetServices = RocketsetServices()
 
     # current_row = jrpc_services.get_total_transaction()
-    current_row = batch_size
+    current_batchsize = batch_size
     processes = []
 
     # create the shared lock
@@ -86,12 +91,13 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
         index = 1
     with ThreadPoolExecutor(max_workers=200) as executor:
         index = int(index)
-        current_row = int(current_row)
+        current_batchsize = int(current_batchsize)
         inc = int(inc)
         batch_size = int(batch_size)
 
-        for start in range(index, current_row, inc):
-            #etl_process(start, start + inc, filepath)
+        for start in range(index, index+batch_size, inc):
+            etl_process(start, start + inc, filepath)
+            """
             processes.append(
                     executor.submit(
                         etl_process,
@@ -100,22 +106,21 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
                         filepath,
                     )
             )
-        
+            """
 
-    for task in as_completed(processes):
-        print(task.result())
+    # for task in as_completed(processes):
+    # print(task.result())
 
     current_row_in_node = jrpc_services.get_total_transaction()
     current_row_in_log = get_row_in_log()
 
     if current_row_in_node > current_row_in_log:
-        current_row = current_row + batch_size
-        batch_to_rocketset(url, current_row, filepath, inc)
+        batch_to_rocketset(url, batch_size, filepath, inc)
     else:
-        time.sleep(10)
+        logging.info("waiting 10s for new datas")
+        time.sleep(60)
         current_row_in_log = get_row_in_log()
-        current_row = current_row + batch_size
-        batch_to_rocketset(url, current_row, filepath, inc)
+        batch_to_rocketset(url, batch_size, filepath, inc)
 
 
 def publish(web_socket_server_host, web_socket_server_port):
