@@ -43,6 +43,7 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
 
         for datax in datas_result:
             print(datax)
+            print(datax["result"]["certificate"]["transactionDigest"])
             print("--------------------------------")
             print("\n")
 
