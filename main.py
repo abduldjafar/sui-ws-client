@@ -101,7 +101,9 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
         batch_size = int(batch_size)
 
         for start in range(index, index + batch_size, inc):
-            #etl_process(start, start + inc, filepath)
+            etl_process(start, start + inc, filepath)
+            """
+            
             processes.append(
                     executor.submit(
                         etl_process,
@@ -110,10 +112,11 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
                         filepath,
                     )
             )
+            """
             
 
-    for task in as_completed(processes):
-        print(task.result())
+    #for task in as_completed(processes):
+        #print(task.result())
 
     current_row_in_node = jrpc_services.get_total_transaction()
     current_row_in_log = get_row_in_log()
