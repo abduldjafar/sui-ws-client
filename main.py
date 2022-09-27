@@ -41,6 +41,8 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
         datas = jrpc_services.get_transactions_range(start, end)
         datas_result = jrpc_services.jrpc_post(datas["transactions_id"])
 
+        datas_result = list(filter(lambda data: "error" not in data.keys(), datas_result))
+
         for datax in datas_result:
             print(datax)
             print(datax["result"]["certificate"]["transactionDigest"])
