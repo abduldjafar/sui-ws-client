@@ -4,6 +4,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from rockset import RocksetClient
 import logging
 
+from core.loadto.rocketset import RocketsetServices
+
 
 class JrpcServices(object):
     def __init__(self, url):
@@ -30,11 +32,31 @@ class JrpcServices(object):
             "params": [0, 0],
         }
 
+
+        self.rocketsetServices = RocketsetServices()
+
+    def get_objectid_datas(self, datas):
+        datas = [
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "sui_getObject",
+                "params": [data["_id"]],
+            }
+            for data in datas
+        ]
+
+        result = self.jrpc_post(datas)
+
+        return result
+
     def jrpc_post(self, payload):
         headers = {"Content-Type": "application/json"}
         response = requests.request(
             "POST", self.url, data=json.dumps(payload), headers=headers
         )
+
+        
         data = json.loads(response.text)
         return data
 
@@ -62,7 +84,7 @@ class JrpcServices(object):
                 setup_transaction_payload(data[1]) for data in post["result"]
             ]
         else:
-            result = { "transactions_id": []}
+            result = {"transactions_id": []}
 
         return result
 

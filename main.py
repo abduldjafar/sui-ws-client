@@ -10,6 +10,43 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 import time
 
+rocketsetServices = RocketsetServices()
+
+
+def pull_object_id_datas(url):
+    rocketsetServices.collection_name = "ObjectId"
+    jrpc_services = JrpcServices(url)
+
+    def change_int_to_float(payload):
+        print(payload)
+        payload["data"]["fields"]["balance"] = float(
+            payload["data"]["fields"]["balance"]
+        )
+        payload["_id"] = payload["data"]["fields"]["id"]["id"]
+        return payload
+    
+    def etl_process(data):
+        result = jrpc_services.get_objectid_datas(data)
+        datas_result = list(
+            filter(lambda data: data["result"]["status"] == "Exists", result)
+        )
+        datas_result = [data["result"]["details"] for data in datas_result]
+        if len(datas_result) > 0:
+            datas_result = [change_int_to_float(data) for data in datas_result]
+            rocketsetServices.add_data(datas_result)
+
+    process = []
+    with ThreadPoolExecutor(max_workers=200) as executor:
+        for data in rocketsetServices.pull_object_id_datas():
+            process.append(executor.submit( etl_process,data))
+    
+    for task in as_completed(process):
+     print(task.result())
+
+
+def get_object_id_datas():
+    rocketsetServices.get_object_id_datas()
+
 
 def subscribe(web_socket_server_host, web_socket_server_port):
     clickhouse = ClickhouseServer()
@@ -23,7 +60,6 @@ def subscribe(web_socket_server_host, web_socket_server_port):
 
 
 def subscribe_to_rocketset():
-    rocketsetServices = RocketsetServices()
     gcpPubsub = gcp_pubsub.GcpPubsub()
 
     gcpPubsub.consume_payload(rocketsetServices.add_data, 3.0)
@@ -44,7 +80,9 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
         if type(datas_result) == dict:
             datas_result = [datas_result]
 
-        datas_result = list(filter(lambda data: "error" not in data.keys(), datas_result))
+        datas_result = list(
+            filter(lambda data: "error" not in data.keys(), datas_result)
+        )
 
         if len(datas_result) > 0:
             datas_result = [
@@ -101,6 +139,7 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
         batch_size = int(batch_size)
 
         for start in range(index, index + batch_size, inc):
+            logging.info("processing batch with datas from index %d to %d", index,index + batch_size)
             etl_process(start, start + inc, filepath)
             """
             
@@ -113,10 +152,9 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
                     )
             )
             """
-            
 
-    #for task in as_completed(processes):
-        #print(task.result())
+    # for task in as_completed(processes):
+    # print(task.result())
 
     current_row_in_node = jrpc_services.get_total_transaction()
     current_row_in_log = get_row_in_log()
@@ -188,6 +226,10 @@ if __name__ == "__main__":
             index_log,
             incremental_get_from_node,
         )
+    elif event == "get_objectid_datas":
+        # get_object_id_datas()
+        pull_object_id_datas("https://fullnode.devnet.sui.io")
+
     else:
         print(
             "please choose a spesific event.\n please run python script.py --help for more information."

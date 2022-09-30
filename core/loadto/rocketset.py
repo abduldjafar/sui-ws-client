@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from rockset import RocksetClient, exceptions
+from rockset import RocksetClient, exceptions,models,QueryPaginator
 import logging
 
 
@@ -49,7 +49,7 @@ class RocketsetServices(object):
                 time.sleep(60)
                 self.add_data(messages)
 
-            elif message_key =="LONG_VALUE_OUT_OF_RANGE":
+            elif message_key == "LONG_VALUE_OUT_OF_RANGE":
                 logging.error(message_key)
             else:
                 for message in messages:
@@ -62,3 +62,40 @@ class RocketsetServices(object):
                     except exceptions.BadRequestException as e:
                         logging.error(e.body)
 
+    def get_datas(self, start, end):
+        pass
+
+    def get_object_id_datas(self):
+        try:
+            rs = self.client.Queries.query(
+                sql={
+                    "query": """
+            INSERT INTO sui.objectId_temp
+            select 
+                objectId as _id 
+            from sui.transactions_result_event t
+            where objectId is not null
+            """,
+                },
+            )
+            logging.info(rs)
+            self.get_object_id_datas()
+        except exceptions.ApiException as e:
+            logging.error("Exception when querying: %s\n" % e)
+
+    def pull_object_id_datas(self):
+        for page in QueryPaginator(
+            self.client,
+            self.client.Queries.query(
+                sql=models.QueryRequestSql(
+                    query="""
+                    select 
+                        _id 
+                    from sui.objectId_temp
+                    """,
+                    paginate=True,
+                    initial_paginate_response_doc_count=3000,
+                )
+            ),
+        ):
+            yield page
