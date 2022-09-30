@@ -42,20 +42,23 @@ class RocketsetServices(object):
         except exceptions.BadRequestException as e:
             logging.error(e.body)
             dict_log = json.loads(e.body)
+            message_key = dict_log["message_key"]
 
-            if dict_log["message_key"] == "WRITE_RATE_LIMIT":
+            if message_key == "WRITE_RATE_LIMIT":
                 logging.info("waiting 60s for documents to be added...")
                 time.sleep(60)
                 self.add_data(messages)
-            elif dict_log["message_key"] =="LONG_VALUE_OUT_OF_RANGE":
-                logging.error(dict_log["message_key"])
+
+            elif message_key =="LONG_VALUE_OUT_OF_RANGE":
+                logging.error(message_key)
             else:
                 for message in messages:
+                    try:
+                        self.client.Documents.add_documents(
+                            collection=self.collection_name,
+                            data=[message],
+                            workspace=self.workspace,
+                        )
+                    except exceptions.BadRequestException as e:
+                        logging.error(e.body)
 
-                    logging.info(message)
-                    
-                    self.client.Documents.add_documents(
-                        collection=self.collection_name,
-                        data=[message],
-                        workspace=self.workspace,
-                    )
