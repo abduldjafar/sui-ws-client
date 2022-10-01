@@ -51,10 +51,17 @@ class JrpcServices(object):
     def get_object_datas(self, datas):
 
         def final_transformation(payload):
-            payload["details"]["data"]["fields"]["balance"] = float(
-                payload["details"]["data"]["fields"]["balance"] 
-            )
-            payload["_id"] = payload["details"]["data"]["fields"]["id"]["id"]
+            if "data" in payload["details"].keys():
+                payload["details"]["data"]["fields"]["balance"] = float(
+                    payload["details"]["data"]["fields"]["balance"] 
+                )
+                payload["_id"] = payload["details"]["data"]["fields"]["id"]["id"]
+
+            elif "objectId" in payload["details"].keys():
+                payload["_id"] = payload["details"]["objectId"]
+            else:
+                pass
+
             return payload
         
         object_ids = [

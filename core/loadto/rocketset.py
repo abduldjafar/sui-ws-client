@@ -38,7 +38,7 @@ class RocketsetServices(object):
             messages = [messages]
         try:
             push = self.client.Documents.add_documents(
-                collection=self.collection_name, data=messages, workspace=self.workspace
+                collection=collection, data=messages, workspace=self.workspace
             )
             logging.info("Added documents to {} collection success".format(collection))
 
