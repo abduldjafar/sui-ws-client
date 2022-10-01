@@ -30,14 +30,17 @@ class RocketsetServices(object):
             else os.environ["ROCKETSET_WORKSPACE_NAME"]
         )
 
-    def add_data(self, messages):
+    def add_data(self, messages,collection=None):
+        if collection is None:
+            collection = self.collection_name
+
         if type(messages) != list:
             messages = [messages]
         try:
             push = self.client.Documents.add_documents(
                 collection=self.collection_name, data=messages, workspace=self.workspace
             )
-            logging.info("Added documents to collection success")
+            logging.info("Added documents to {} collection success".format(collection))
 
         except exceptions.BadRequestException as e:
             logging.error(e.body)

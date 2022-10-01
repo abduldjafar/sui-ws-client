@@ -13,37 +13,6 @@ import time
 rocketsetServices = RocketsetServices()
 
 
-def pull_object_id_datas(url):
-    rocketsetServices.collection_name = "ObjectId"
-    jrpc_services = JrpcServices(url)
-
-    def change_int_to_float(payload):
-        print(payload)
-        payload["data"]["fields"]["balance"] = float(
-            payload["data"]["fields"]["balance"]
-        )
-        payload["_id"] = payload["data"]["fields"]["id"]["id"]
-        return payload
-    
-    def etl_process(data):
-        result = jrpc_services.get_objectid_datas(data)
-        datas_result = list(
-            filter(lambda data: data["result"]["status"] == "Exists", result)
-        )
-        datas_result = [data["result"]["details"] for data in datas_result]
-        if len(datas_result) > 0:
-            datas_result = [change_int_to_float(data) for data in datas_result]
-            rocketsetServices.add_data(datas_result)
-
-    process = []
-    with ThreadPoolExecutor(max_workers=200) as executor:
-        for data in rocketsetServices.pull_object_id_datas():
-            process.append(executor.submit( etl_process,data))
-    
-    for task in as_completed(process):
-     print(task.result())
-
-
 def get_object_id_datas():
     rocketsetServices.get_object_id_datas()
 
@@ -96,7 +65,9 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
             ]
 
             if datas_result[0]["_id"] != "error":
+                object_datas = jrpc_services.get_object_datas(datas_result)
                 rocketsetServices.add_data(datas_result)
+                rocketsetServices.add_data(object_datas,collection="ObjectId")
 
                 lck.acquire()
                 with open(fname, "r") as f:
@@ -226,10 +197,6 @@ if __name__ == "__main__":
             index_log,
             incremental_get_from_node,
         )
-    elif event == "get_objectid_datas":
-        # get_object_id_datas()
-        pull_object_id_datas("https://fullnode.devnet.sui.io")
-
     else:
         print(
             "please choose a spesific event.\n please run python script.py --help for more information."

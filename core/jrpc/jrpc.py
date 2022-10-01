@@ -32,23 +32,8 @@ class JrpcServices(object):
             "params": [0, 0],
         }
 
-
         self.rocketsetServices = RocketsetServices()
 
-    def get_objectid_datas(self, datas):
-        datas = [
-            {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "sui_getObject",
-                "params": [data["_id"]],
-            }
-            for data in datas
-        ]
-
-        result = self.jrpc_post(datas)
-
-        return result
 
     def jrpc_post(self, payload):
         headers = {"Content-Type": "application/json"}
@@ -56,13 +41,41 @@ class JrpcServices(object):
             "POST", self.url, data=json.dumps(payload), headers=headers
         )
 
-        
         data = json.loads(response.text)
         return data
 
     def get_total_transaction(self):
         post = self.jrpc_post(self.get_total_transaction_payload)
         return post["result"]
+
+    def get_object_datas(self, datas):
+
+        def final_transformation(payload):
+            payload["details"]["data"]["fields"]["balance"] = float(
+                payload["details"]["data"]["fields"]["balance"] 
+            )
+            payload["_id"] = payload["details"]["data"]["fields"]["id"]["id"]
+            return payload
+        
+        object_ids = [
+            data["params"]["result"]["certificate"]["data"]["gasPayment"]["objectId"]
+            for data in datas
+        ]
+        datas = [
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "sui_getObject",
+                "params": [object_id],
+            }
+            for object_id in object_ids
+        ]
+        post = self.jrpc_post(datas)
+
+        post = [final_transformation(data["result"]) for data in post]
+
+        return post
+
 
     def get_transactions_range(self, first, last):
         def setup_transaction_payload(transaction_id):
