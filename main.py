@@ -81,7 +81,7 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
 
                 change_to_float(datas_result)
                 change_to_float(object_datas)
-                print(object_datas)
+                
                 rocketsetServices.add_data(datas_result)
                 rocketsetServices.add_data(object_datas,collection="ObjectId")
 
