@@ -37,6 +37,18 @@ def subscribe_to_rocketset():
 def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
     global lck
 
+    def change_to_float(data):
+        if isinstance(data, list):
+            for i in data:
+                change_to_float(i)
+        elif isinstance(data, dict):
+            for k, v in data.items():
+                if not isinstance(v, (list, dict)):
+                    if k == "amount" or k == "balance":
+                        data[k] = float(data[k])
+                else:
+                    change_to_float(v)
+
     def get_row_in_log():
         with open(filepath, "r") as f:
             last_index = int(f.read())
@@ -66,6 +78,10 @@ def batch_to_rocketset(url, batch_size=1000, filepath="output.log", inc=1000):
 
             if datas_result[0]["_id"] != "error":
                 object_datas = jrpc_services.get_object_datas(datas_result)
+
+                change_to_float(datas_result)
+                change_to_float(object_datas)
+                print(object_datas)
                 rocketsetServices.add_data(datas_result)
                 rocketsetServices.add_data(object_datas,collection="ObjectId")
 

@@ -49,25 +49,12 @@ class JrpcServices(object):
         return post["result"]
 
     def get_object_datas(self, datas):
-
-        def final_transformation(payload):
-            if "data" in payload["details"].keys():
-                payload["details"]["data"]["fields"]["balance"] = float(
-                    payload["details"]["data"]["fields"]["balance"] 
-                )
-                payload["_id"] = payload["details"]["data"]["fields"]["id"]["id"]
-
-            elif "objectId" in payload["details"].keys():
-                payload["_id"] = payload["details"]["objectId"]
-            else:
-                pass
-
-            return payload
         
         object_ids = [
             data["params"]["result"]["certificate"]["data"]["gasPayment"]["objectId"]
             for data in datas
         ]
+        
         datas = [
             {
                 "jsonrpc": "2.0",
@@ -77,9 +64,10 @@ class JrpcServices(object):
             }
             for object_id in object_ids
         ]
+
         post = self.jrpc_post(datas)
 
-        post = [final_transformation(data["result"]) for data in post]
+        post = [data["result"] for data in post]
 
         return post
 

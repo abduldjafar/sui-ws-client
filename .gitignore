@@ -130,3 +130,4 @@ dmypy.json
 example
 run.sh
 run_ingestion_to_rocketset.sh
+code_test_dict.py
